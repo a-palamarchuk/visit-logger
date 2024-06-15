@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "Visit Logger",
+  "version": "1",
+  "description": "Logs visits to web sites and shows indicates whether a visit was logged earlier for the web site.",
+  "developer": {
+    "name": "Andriy Palamarchuk"
+  },
+  "icons": {
+    "48": "icons/logged.svg",
+    "96": "icons/logged.svg"
+  },
+
+  "permissions": [
+    "tabs"
+  ],
+
+  "browser_action": {
+    "default_icon": "icons/not-logged.svg",
+    "default_title": "Log site"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  }
+}
