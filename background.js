@@ -11,7 +11,7 @@ function updateIcon() {
     tabId: currentTab.id
   });
   browser.browserAction.setTitle({
-    title: currentLogged ? "Site was logged" : "Log site",
+    title: currentLogged ? "Site visit was logged" : "Log site visit (F9)",
     tabId: currentTab.id
   });
 }

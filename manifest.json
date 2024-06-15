@@ -6,6 +6,7 @@
   "developer": {
     "name": "Andriy Palamarchuk"
   },
+  
   "icons": {
     "48": "icons/logged.svg",
     "96": "icons/logged.svg"
@@ -17,7 +18,13 @@
 
   "browser_action": {
     "default_icon": "icons/not-logged.svg",
-    "default_title": "Log site"
+    "default_title": "Log site visit (F9)"
+  },
+
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": { "default": "F9" }
+    }
   },
 
   "background": {
