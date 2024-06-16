@@ -2,18 +2,25 @@
   "manifest_version": 2,
   "name": "Visit Logger",
   "version": "1",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "visit-logger@example.com"
+    }
+  },
   "description": "Logs visits to web sites and shows indicates whether a visit was logged earlier for the web site.",
   "developer": {
     "name": "Andriy Palamarchuk"
   },
-  
+
   "icons": {
     "48": "icons/logged.svg",
     "96": "icons/logged.svg"
   },
 
   "permissions": [
-    "tabs"
+    "storage",
+    "tabs",
+    "unlimitedStorage"
   ],
 
   "browser_action": {
