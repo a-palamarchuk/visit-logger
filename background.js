@@ -1,5 +1,6 @@
 /* generic error handler */
 function onError(error) {
+  console.log("ERROR!!!");
   console.log(error);
 }
 
@@ -11,17 +12,20 @@ function refreshIcon(tab) {
   const h = url.hostname;
   browser.storage.local.get({[h]: {}})
     .then((site) => {
-      const currentLogged = site[h].date;
-      console.log(h + " was logged on " + site[h].date);
+      const logged = site[h].date;
+      const action = browser.browserAction;
 
-      browser.browserAction.setIcon({
-        path: currentLogged ? "icons/logged.svg" : "icons/not-logged.svg",
+      action.setIcon({
+        path: logged ? "icons/logged.svg" : "icons/not-logged.svg",
         tabId: tab.id
       });
-      browser.browserAction.setTitle({
-        title: currentLogged ? "Site visit was logged" : "Log site visit",
+      action.setTitle({
+        title: logged ? "Site visit was logged" : "Log site visit",
         tabId: tab.id
       });
+
+      action.setBadgeBackgroundColor({color: "#FFF600"});
+      action.setBadgeText({text: site[h].r ? "R" : ""});
     });
 }
 
@@ -34,10 +38,13 @@ function logVisit(tab) {
 
   function markLogged(site) {
     if (!site[h].date) {
-      console.log("Logging " + h);
       site[h].date = new Date().toISOString().substring(0, 10);
     } else {
-      console.log("Already logged " + h + " on " + site[h].date);
+      if (site[h].r) {
+        delete site[h].r;
+      } else {
+        site[h].r = true;
+      }
     }
     return site;
   }
