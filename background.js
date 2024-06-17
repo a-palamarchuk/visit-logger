@@ -4,9 +4,7 @@ function onError(error) {
   console.log(error);
 }
 
-/*
- * Makes the browserAction icon reflect the tab site logged state.
- */
+/* Makes the browserAction icon reflect the tab site logged state. */
 function refreshIcon(tab) {
   const url = new URL(tab.url);
   const h = url.hostname;
@@ -29,9 +27,7 @@ function refreshIcon(tab) {
     });
 }
 
-/*
- * The register visit browser action was triggered.
- */
+/* The register visit browser action was triggered. */
 function logVisit(tab) {
   const url = new URL(tab.url);
   const h = url.hostname
@@ -54,7 +50,7 @@ function logVisit(tab) {
       .then((site) => markLogged(site))
       .then((site) => browser.storage.local.set(site))
       .then(() => refreshIcon(tab))
-      .catch(onError)
+      .catch(onError);
   } else {
     console.log("Skipping site with protocol " + url.protocol);
     refreshIcon(tab);
@@ -64,9 +60,7 @@ function logVisit(tab) {
 browser.browserAction.onClicked.addListener(logVisit);
 
 
-/*
- * Refreshes the extension UI for the currently active tab.
- */
+/* Refreshes the extension UI for the currently active tab. */
 function updateActiveTab(tabs) {
   const gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
   gettingActiveTab.then((tabs) => {
@@ -91,6 +85,7 @@ browser.windows.onFocusChanged.addListener(updateActiveTab);
 // update when the extension loads initially
 updateActiveTab();
 
+
 const exportId = "export-logged-sites";
 const importId = "import-logged-sites";
 
@@ -109,10 +104,35 @@ browser.menus.create({
 browser.menus.onClicked.addListener((info, tab) => {
   switch (info.menuItemId) {
   case exportId:
-    console.log("Export was called");
+    exportLoggedSites();
     break;
   case importId:
     console.log("Import was called");
     break;
   }
 })
+
+/* Exports the extension local storage to a downloadable file. */
+function exportLoggedSites() {
+  const filename =
+        "visitedSites_"
+        + new Date().toISOString()
+         .replaceAll(":", "")
+         .replace("T", "_")
+         .substring(0, 15)
+        + ".json";
+  browser.storage.local.get()
+    .then((sites) => new Blob([JSON.stringify(sites, null, 0)], {type: "application/json"}))
+    .then((blob) => {
+      const url = URL.createObjectURL(blob);
+      // instead of messing with download events just delete it in 5 minutes
+      setTimeout(() => URL.revokeObjectURL(url), 5 * 60 * 1000);
+      return url;
+    })
+    .then((url) => browser.downloads.download(
+      {
+        url: url,
+        filename: filename
+      }))
+    .catch(onError);
+}
