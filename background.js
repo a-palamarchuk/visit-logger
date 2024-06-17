@@ -18,7 +18,7 @@ function refreshIcon(tab) {
         tabId: tab.id
       });
       action.setTitle({
-        title: logged ? "Toggle R mark on logged site (F9)" : "Log site visit (F9)",
+        title: logged ? "Toggle R mark on the site logged as visited (F9)" : "Log site visit (F9)",
         tabId: tab.id
       });
 
@@ -107,7 +107,7 @@ browser.menus.onClicked.addListener((info, tab) => {
     exportLoggedSites();
     break;
   case importId:
-    console.log("Import was called");
+    importLoggedSites();
     break;
   }
 })
@@ -122,7 +122,7 @@ function exportLoggedSites() {
          .substring(0, 15)
         + ".json";
   browser.storage.local.get()
-    .then((sites) => new Blob([JSON.stringify(sites, null, 0)], {type: "application/json"}))
+    .then((sites) => new Blob([JSON.stringify(sites)], {type: "application/json"}))
     .then((blob) => {
       const url = URL.createObjectURL(blob);
       // instead of messing with download events just delete it in 5 minutes
@@ -135,4 +135,14 @@ function exportLoggedSites() {
         filename: filename
       }))
     .catch(onError);
+}
+
+function importLoggedSites() {
+  try {
+    browser.windows.create(
+      {type: "popup", url: "/popup.html", top: 0, left: 0, width: 600, height: 400,});
+  } catch (err) {
+    console.error(err);
+  }
+  return;
 }
