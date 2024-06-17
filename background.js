@@ -20,7 +20,7 @@ function refreshIcon(tab) {
         tabId: tab.id
       });
       action.setTitle({
-        title: logged ? "Site visit was logged" : "Log site visit",
+        title: logged ? "Toggle R mark on logged site (F9)" : "Log site visit (F9)",
         tabId: tab.id
       });
 
@@ -90,3 +90,29 @@ browser.windows.onFocusChanged.addListener(updateActiveTab);
 
 // update when the extension loads initially
 updateActiveTab();
+
+const exportId = "export-logged-sites";
+const importId = "import-logged-sites";
+
+browser.menus.create({
+  id: exportId,
+  title: "Export Logged Sites",
+  contexts: ["all"]
+});
+
+browser.menus.create({
+  id: importId,
+  title: "Import Logged Sites",
+  contexts: ["all"]
+});
+
+browser.menus.onClicked.addListener((info, tab) => {
+  switch (info.menuItemId) {
+  case exportId:
+    console.log("Export was called");
+    break;
+  case importId:
+    console.log("Import was called");
+    break;
+  }
+})
