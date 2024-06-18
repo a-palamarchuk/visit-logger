@@ -7,7 +7,7 @@ function onError(error) {
 /* Makes the browserAction icon reflect the tab site logged state. */
 function refreshIcon(tab) {
   const url = new URL(tab.url);
-  const h = url.hostname;
+  const h = normalizeHostName(url.hostname);
   browser.storage.local.get({[h]: {}})
     .then((site) => {
       const logged = site[h].date;
@@ -30,7 +30,7 @@ function refreshIcon(tab) {
 /* The register visit browser action was triggered. */
 function logVisit(tab) {
   const url = new URL(tab.url);
-  const h = url.hostname
+  const h = normalizeHostName(url.hostname);
 
   function markLogged(site) {
     if (!site[h].date) {
@@ -55,6 +55,13 @@ function logVisit(tab) {
     console.log("Skipping site with protocol " + url.protocol);
     refreshIcon(tab);
   }
+}
+
+function normalizeHostName(hostname) {
+  if (hostname.startsWith("www.")) {
+    hostname = hostname.substring(4);
+  }
+  return hostname;
 }
 
 browser.browserAction.onClicked.addListener(logVisit);
