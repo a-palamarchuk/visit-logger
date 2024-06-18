@@ -18,6 +18,7 @@
   },
 
   "permissions": [
+    "clipboardWrite",
     "downloads",
     "menus",
     "storage",
@@ -31,8 +32,13 @@
   },
 
   "commands": {
+    "copy-contact": {
+      "suggested_key": { "default": "F8" },
+      "description": "Generate and copy into clipboard a \"contact\" record for the current web site"
+    },
     "_execute_browser_action": {
-      "suggested_key": { "default": "F9" }
+      "suggested_key": { "default": "F9" },
+      "description": "Marks the site as visited and after that toggles the R badge for the toolbar icon"
     }
   },
 

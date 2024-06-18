@@ -57,6 +57,19 @@ function logVisit(tab) {
   }
 }
 
+browser.commands.onCommand.addListener((command, tab) => {
+  if (command === "copy-contact") {
+    const url = new URL(tab.url);
+    const h = normalizeHostName(url.hostname);
+    const date = new Date().toISOString().substring(0, 10);
+    navigator.clipboard.writeText(`<site url="${h}" name="${tab.title}" rating="2">
+    <address zone=""></address>
+    <comment date="${date}"></comment>
+  </site>`);
+    console.log("Copied contact record to the clipboard for " + h);
+  }
+});
+
 function normalizeHostName(hostname) {
   if (hostname.startsWith("www.")) {
     hostname = hostname.substring(4);
