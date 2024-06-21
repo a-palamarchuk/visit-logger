@@ -10,6 +10,12 @@ function refreshIcon(tab) {
   const h = normalizeHostName(url.hostname);
   browser.storage.local.get({[h]: {}})
     .then((site) => {
+      // Don't show that "google.com" is logged even when it is.
+      // It would be annoying to see the icon every time one goes to Google.
+      if (h === "google.com") {
+        site = {};
+      }
+
       const logged = site[h].date;
       const action = browser.browserAction;
 
