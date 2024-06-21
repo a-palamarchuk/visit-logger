@@ -67,6 +67,7 @@ browser.commands.onCommand.addListener((command, tab) => {
     <comment date="${date}"></comment>
   </site>`);
     console.log("Copied contact record to the clipboard for " + h);
+    new Audio("copied.ogg").play();
   }
 });
 
