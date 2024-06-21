@@ -73,7 +73,7 @@ browser.commands.onCommand.addListener((command, tab) => {
     <comment date="${date}"></comment>
   </site>`);
     console.log("Copied contact record to the clipboard for " + h);
-    new Audio("copied.ogg").play();
+    playSound();
   }
 });
 
@@ -82,6 +82,10 @@ function normalizeHostName(hostname) {
     hostname = hostname.substring(4);
   }
   return hostname;
+}
+
+function playSound() {
+  new Audio("copied.ogg").play();
 }
 
 browser.browserAction.onClicked.addListener(logVisit);
@@ -161,6 +165,7 @@ function exportLoggedSites() {
         url: url,
         filename: filename
       }))
+    .then(() => playSound())
     .catch(onError);
 }
 
