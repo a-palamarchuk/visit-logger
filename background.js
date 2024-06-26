@@ -93,15 +93,15 @@ browser.browserAction.onClicked.addListener(logVisit);
 
 /* Refreshes the extension UI for the currently active tab. */
 function updateActiveTab(tabs) {
-  const gettingActiveTab = browser.tabs.query({active: true, currentWindow: true});
-  gettingActiveTab.then((tabs) => {
-    if (tabs[0]) {
-      const tab = tabs[0];
-      refreshIcon(tab);
-    } else {
-      console.log("WARN: no active tab was found");
-    }
-  });
+  browser.tabs.query({active: true, currentWindow: true})
+    .then((tabs) => {
+      if (tabs[0]) {
+        const tab = tabs[0];
+        refreshIcon(tab);
+      } else {
+        console.log("WARN: no active tab was found");
+      }
+    });
 }
 
 // listen to tab URL changes
@@ -119,6 +119,7 @@ updateActiveTab();
 
 const exportId = "export-logged-sites";
 const importId = "import-logged-sites";
+const openLinksId = "open-links";
 
 browser.menus.create({
   id: exportId,
@@ -132,6 +133,13 @@ browser.menus.create({
   contexts: ["all"]
 });
 
+browser.menus.create({
+  id: openLinksId,
+  title: "Continuously open page links not marked as visited",
+  contexts: ["all"]
+});
+
+
 browser.menus.onClicked.addListener((info, tab) => {
   switch (info.menuItemId) {
   case exportId:
@@ -139,6 +147,28 @@ browser.menus.onClicked.addListener((info, tab) => {
     break;
   case importId:
     importLoggedSites();
+    break;
+  case openLinksId:
+    browser.tabs.executeScript({
+      code:
+      `hrefs = [];
+       links = document.getElementsByTagName("a");
+       for (let i = 0; i < links.length; i++) {
+         hrefs.push(links[i].href);
+       }
+       hrefs;
+      `,
+    })
+      .then((r) => {
+        const urls = [];
+        for (let url of r[0]) {
+          if (!url.startsWith("https://www.google.com")) {
+            urls.push(url);
+          }
+        }
+        return startOpeningUrls(tab, urls);
+      })
+      .catch(onError);
     break;
   }
 })
@@ -178,3 +208,53 @@ function importLoggedSites() {
   }
   return;
 }
+
+function startOpeningUrls(tab, urls) {
+  const openUrlsProgress = {
+    windowId: tab.windowId,
+    tabIndex: tab.index,
+    urls: urls,
+  }
+
+  return browser.storage.session.set({openUrlsProgress: openUrlsProgress})
+    .then(maybeKeepOpeningUrls);
+}
+
+async function maybeKeepOpeningUrls() {
+  const key = await browser.storage.session.get("openUrlsProgress");
+  if (!key.openUrlsProgress) {
+    return;
+  }
+
+  const progress = key.openUrlsProgress;
+  const tabs = await browser.tabs.query({windowId: progress.windowId});
+  if (!progress.urls.length || !tabs.length) {
+    console.log("Stopped opening URLs");
+    return browser.storage.session.remove("openUrlsProgress");
+  }
+
+  const targetTabCount = 5;
+  let tabCount = tabs.length;
+  if (tabCount >= targetTabCount) {
+    // we have a sufficient number of open tabs
+    return;
+  }
+
+  while (progress.urls.length && tabCount < targetTabCount) {
+    const url = progress.urls.shift();
+    const h = normalizeHostName(new URL(url).hostname);
+    const site = await browser.storage.local.get({[h]: {}});
+    if (site[h].date) {
+      continue;
+    }
+    browser.tabs.create({
+      url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
+    tabCount++;
+  }
+
+  return browser.storage.session.set({openUrlsProgress: progress});
+}
+
+// try opening new tabs when an existing is gone
+browser.tabs.onRemoved.addListener(maybeKeepOpeningUrls);
+browser.tabs.onDetached.addListener(maybeKeepOpeningUrls);

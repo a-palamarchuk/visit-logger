@@ -13,6 +13,7 @@ The extension keyboard shortcuts:
 The extension also provides the following local menu items:
 * Export Logged Sites - exports the logged sites data collected so far as JSON file.
 * Import Logged Sites - merges the logged sites data into the extension's visit log if they are not already there. The data should be provided in the same JSON format as the exported data.
+* Continuously open page links not marked as visited - on a page containing hyperlinks to other sites starts opening those hyperlinks in new tabs keeping only a few of those tabs open. Skip the sites marked as visited by the main extension functionality.
 
 The export/import functionality allows backup/restore, using external sources of site visits,  and integration with other external processing.
 
