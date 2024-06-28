@@ -63,6 +63,19 @@ function logVisit(tab) {
   }
 }
 
+function logVisitForHost(host) {
+
+  function markLogged(site) {
+    site[host].date = new Date().toISOString().substring(0, 10);
+    return site;
+  }
+
+  browser.storage.local.get({[host]: {}})
+    .then((site) => markLogged(site))
+    .then((site) => browser.storage.local.set(site))
+    .catch(onError);
+}
+
 browser.commands.onCommand.addListener((command, tab) => {
   if (command === "copy-contact") {
     const url = new URL(tab.url);
@@ -259,7 +272,7 @@ async function maybeKeepOpeningUrls() {
     }
     const tab = await browser.tabs.create({
       url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
-    logVisit(tab);
+    logVisitForHost(h);
     tabCount++;
   }
 
