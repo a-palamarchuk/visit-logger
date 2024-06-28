@@ -120,6 +120,7 @@ updateActiveTab();
 const exportId = "export-logged-sites";
 const importId = "import-logged-sites";
 const openLinksId = "open-links";
+const stopOpeningLinksId = "stop-opening-links";
 
 browser.menus.create({
   id: exportId,
@@ -136,6 +137,12 @@ browser.menus.create({
 browser.menus.create({
   id: openLinksId,
   title: "Continuously open page links not marked as visited",
+  contexts: ["all"]
+});
+
+browser.menus.create({
+  id: stopOpeningLinksId,
+  title: "Stop opening links",
   contexts: ["all"]
 });
 
@@ -169,6 +176,9 @@ browser.menus.onClicked.addListener((info, tab) => {
         return startOpeningUrls(tab, urls);
       })
       .catch(onError);
+    break;
+  case stopOpeningLinksId:
+    return browser.storage.session.remove("openUrlsProgress");
     break;
   }
 })
@@ -247,8 +257,9 @@ async function maybeKeepOpeningUrls() {
     if (site[h].date) {
       continue;
     }
-    browser.tabs.create({
+    const tab = await browser.tabs.create({
       url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
+    logVisit(tab);
     tabCount++;
   }
 
