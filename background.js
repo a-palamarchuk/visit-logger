@@ -149,7 +149,7 @@ browser.menus.create({
 
 browser.menus.create({
   id: openLinksId,
-  title: "Continuously open page links not marked as visited",
+  title: "Start to continuously open not visited links",
   contexts: ["all"]
 });
 
@@ -279,6 +279,6 @@ async function maybeKeepOpeningUrls() {
   return browser.storage.session.set({openUrlsProgress: progress});
 }
 
-// try opening new tabs when an existing is gone
+// try opening new tabs when an existing is closed
 browser.tabs.onRemoved.addListener(maybeKeepOpeningUrls);
-browser.tabs.onDetached.addListener(maybeKeepOpeningUrls);
+
