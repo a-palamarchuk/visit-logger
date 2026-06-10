@@ -7,7 +7,7 @@
       "id": "visit-logger@example.com"
     }
   },
-  "description": "Logs visits to web sites and shows indicates whether a visit was logged earlier for the web site.",
+  "description": "Manages website visits during a job search workflow.",
   "developer": {
     "name": "Andriy Palamarchuk"
   },

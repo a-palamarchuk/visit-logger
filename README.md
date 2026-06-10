@@ -1,36 +1,59 @@
 # Visit Logger
 
-## What it does
+A Firefox extension for managing website visits during a job search workflow.
 
-Displays a simple button in the menu bar that toggles the indicator whether a website was visited
-before. The action can also be called with F9.
-A repeated call to this action toggles the "R" toolbar icon badge on a site logged as visited for
-when I submit resume for it. Note, google.com is always shown as not visited even when it is 
-to prevent the fatigue of seing them every time one goes there.
+## Features
 
-**ATTENTION!!!** When running the extension with [temporary installation in Firefox](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox)
-make the following settings in the Firefox configuration to persist the extension data between 
-browser restarts. Go to `about:config` and set both `extensions.webextensions.keepStorageOnUninstall`
-and `extensions.webextensions.keepUuidOnUninstall` to `true`
-(see [the instructions](https://extensionworkshop.com/documentation/develop/testing-persistent-and-restart-features)).
-Otherwise, you'll be at risk of losing visit log data.
+**Visit tracking**
+- Toolbar icon badge indicates whether the current site has been visited
+- Press F9 to mark a site as visited; press again to toggle the "R" badge indicating a resume was
+  submitted to the website
+- Visited state persists across browser restarts
+- Export and import visit log as JSON for backup, analysis, or integration with external tools
 
-The extension keyboard shortcuts:
-* F8 - generate and copy into clipboard a "contact" record for the current website.
-  Ideally this functionality should live in a different extension. Keep here for convenience.
-* F9 - mark a website as visited, toggle the "R" toolbar icon badge after that.
+**Automated tab queue**
+- On any page containing hyperlinks, start continuous tab opening with a single menu action
+- The extension opens links in new tabs, maintaining a maximum number of open tabs (now: 5)
+- When you close a tab, the extension automatically opens the next unvisited link in the background
+- Skips links already marked as visited
+- After restart, already-visited sites are skipped automatically when starting a new queue
 
-The extension also provides the following local menu items:
-* Export Logged Sites - exports the logged sites data collected so far as JSON file.
-* Import Logged Sites - merges the logged sites data into the extension's visit log if they are not
-  already there. The data should be provided in the same JSON format as the exported data.
-* Continuously open page links not marked as visited - on a page containing hyperlinks to other sites
-  starts opening those hyperlinks in new tabs keeping only a few of those tabs open.
-  Skip the sites marked as visited by the main extension functionality.
+**Keyboard shortcuts**
+- F9 - mark current site as visited / toggle resume-submitted badge
+- F8 - copy a contact record for the current site to clipboard
 
-The export/import functionality allows backup/restore, using external sources of site visits,
-and integration with other external processing.
+## Installation
+
+This extension is not listed on the Firefox Add-ons site. To install it as
+a [temporary extension](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox)
+for development and personal use:
+
+1. Clone or download this repository
+2. Open Firefox and navigate to `about:debugging`
+3. Click **This Firefox** → **Load Temporary Add-on**
+4. Select any file in the repository directory
+
+**To persist data between browser restarts when using temporary installation:**
+Go to `about:config` and set both `extensions.webextensions.keepStorageOnUninstall` and
+`extensions.webextensions.keepUuidOnUninstall` to `true`.
+See [Testing persistent and restart features](https://extensionworkshop.com/documentation/develop/testing-persistent-and-restart-features)
+for details.
+
+## Architecture
+
+The extension has a single background script that handles all logic and state:
+
+- **Visit state** is stored in `browser.storage.local`, keyed by normalized hostname
+  (`www.` stripped). This persists across browser restarts.
+- **Tab queue progress** is stored in `browser.storage.session`. This is intentionally ephemeral -
+  the queue does not survive a browser restart.
+- **Icon and badge state** is updated reactively by listening to `tabs.onUpdated`,
+  `tabs.onActivated`, and `windows.onFocusChanged`.
+- **Tab queue** is driven by `tabs.onRemoved`: when any tab closes, the extension checks
+  whether the open tab count has fallen below the threshold and opens the next unvisited URL.
+- **Import UI** opens as a browser popup window (`popup.html`); the background script
+  handles export directly via `browser.downloads`.
 
 ## Development
 
-The icons are taken from https://fonts.google.com/icons.
+Icons sourced from [Google Fonts Icons](https://fonts.google.com/icons).
