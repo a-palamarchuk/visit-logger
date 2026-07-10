@@ -192,7 +192,6 @@ browser.menus.onClicked.addListener((info, tab) => {
     break;
   case stopOpeningLinksId:
     return browser.storage.session.remove("openUrlsProgress");
-    break;
   }
 })
 
@@ -229,7 +228,6 @@ function importLoggedSites() {
   } catch (err) {
     console.error(err);
   }
-  return;
 }
 
 function startOpeningUrls(tab, urls) {
@@ -270,7 +268,7 @@ async function maybeKeepOpeningUrls() {
     if (site[h].date) {
       continue;
     }
-    const tab = await browser.tabs.create({
+    await browser.tabs.create({
       url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
     logVisitForHost(h);
     tabCount++;
