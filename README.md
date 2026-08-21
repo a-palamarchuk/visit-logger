@@ -10,6 +10,10 @@ A Firefox extension for managing website visits during a job search workflow.
   submitted to the website
 - Visited state persists across browser restarts
 - Export and import visit log as JSON for backup, analysis, or integration with external tools
+- Applicant tracking systems and job boards (Greenhouse, Lever, Workday, iCIMS, and similar) are
+  recognized and cannot be marked visited: their hostnames are shared by thousands of employers,
+  so logging one would silently skip every company using that ATS. The toolbar badge shows "ATS"
+  on those pages.
 
 **Automated tab queue**
 - On any page containing hyperlinks, start continuous tab opening with a single menu action
@@ -45,6 +49,9 @@ The extension has a single background script that handles all logic and state:
 
 - **Visit state** is stored in `browser.storage.local`, keyed by normalized hostname
   (`www.` stripped). This persists across browser restarts.
+- **ATS hosts** are listed in `ATS_HOSTS` and matched by domain suffix. Marking is refused on
+  them, since visit state is keyed by hostname and an ATS hostname identifies the vendor rather
+  than the employer.
 - **Tab queue progress** is stored in `browser.storage.session`. This is intentionally ephemeral -
   the queue does not survive a browser restart.
 - **Icon and badge state** is updated reactively by listening to `tabs.onUpdated`,

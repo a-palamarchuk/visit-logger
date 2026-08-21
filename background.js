@@ -8,6 +8,17 @@ function onError(error) {
 function refreshIcon(tab) {
   const url = new URL(tab.url);
   const h = normalizeHostName(url.hostname);
+  if (isAtsHost(h)) {
+    const action = browser.browserAction;
+    action.setIcon({path: "icons/not-logged.svg", tabId: tab.id});
+    action.setTitle({
+      title: "Applicant tracking system - log the employer's own site instead",
+      tabId: tab.id
+    });
+    action.setBadgeBackgroundColor({color: "#888888"});
+    action.setBadgeText({text: "ATS", tabId: tab.id});
+    return;
+  }
   browser.storage.local.get({[h]: {}})
       .then((site) => {
         // Don't show that "google.com" is logged even when it is.
@@ -38,6 +49,11 @@ function refreshIcon(tab) {
 function logVisit(tab) {
   const url = new URL(tab.url);
   const h = normalizeHostName(url.hostname);
+  if (isAtsHost(h)) {
+    console.log("Refusing to log ATS host " + h);
+    refreshIcon(tab);
+    return;
+  }
 
   function markLogged(site) {
     if (!site[h].date) {
@@ -90,6 +106,45 @@ browser.commands.onCommand.addListener((command, tab) => {
     playSound();
   }
 });
+
+/* Hosts belonging to applicant tracking systems and job boards.
+ *
+ * Visit state is keyed by hostname, and these hosts are shared by thousands of
+ * unrelated employers. Logging one would cause every future queue to skip every
+ * company using that ATS - silently, since a skipped link looks the same as a
+ * finished one. Marking is refused here; the company's own site is what should
+ * be logged.
+ */
+const ATS_HOSTS = [
+  "applicantpool.com", "applicantpro.com", "applicantstack.com", "applytojob.com",
+  "appone.com", "appvault.com", "ashbyhq.com", "atsondemand.com", "avahr.com",
+  "bamboohr.com", "betterteam.com", "brassring.com", "breezy.hr", "brightmove.com",
+  "careerplug.com", "careerspage.io", "comeet.com", "csod.com", "dayforcehcm.com",
+  "deel.com", "dover.com", "eightfold.ai", "exacthire.com", "freshteam.com",
+  "gem.com", "governmentjobs.com", "gr8people.com", "greenhouse.io", "gusto.com",
+  "harri.com", "hibob.com", "hireclick.com", "hireology.com", "hirebridge.com",
+  "hiringthing.com", "hrmdirect.com", "hrsmart.com", "icims.com", "interfolio.com",
+  "isolvedhire.com", "jobappnetwork.com", "jobscore.com", "jobvite.com",
+  "lever.co", "munisselfservice.com", "myworkdayjobs.com", "myworkdaysite.com",
+  "njoyn.com", "ns2cloud.com", "oraclecloud.com", "ourcareerpages.com",
+  "pageuppeople.com", "paradox.ai", "paycomonline.net", "paylocity.com",
+  "peopleadmin.com", "peoplematter.com", "pereless.com", "personio.com",
+  "personio.de", "prismhr-hire.com", "recruitee.com", "recruitingbypaycor.com",
+  "recruitmentplatform.com", "rippling.com", "saashr.com", "salesforce-sites.com",
+  "schoolspring.com", "selectminds.com", "silkroad.com", "smartrecruiters.com",
+  "successfactors.com", "taleo.net", "teamworkonline.com", "trakstar.com",
+  "ultipro.com", "usajobs.gov", "viglobalcloud.com", "wizehire.com",
+  "workable.com", "workforcenow.adp.com", "workstream.us", "zohorecruit.com"
+];
+
+/* True if the hostname is an ATS or job board rather than an employer's site.
+ *
+ * Matches subdomains only. Most of these vendors are themselves employers whose
+ * own site should stay loggable: jobs.gusto.com is a board, gusto.com is Gusto.
+ */
+function isAtsHost(hostname) {
+  return ATS_HOSTS.some((d) => hostname.endsWith("." + d));
+}
 
 function normalizeHostName(hostname) {
   if (hostname.startsWith("www.")) {
