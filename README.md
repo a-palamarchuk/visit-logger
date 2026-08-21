@@ -31,9 +31,15 @@ A Firefox extension for managing website visits during a job search workflow.
 - `data-visit-key` overrides which host a link is tracked against. A careers page on an applicant
   tracking system or a separate careers domain can therefore be recorded against the employer's
   own site.
+- `data-visit-mark="auto"` marks a link's key as visited when its tab opens, so working through a
+  generated list needs no keypress per row and an interrupted pass resumes where it left off.
+  Up to a few tabs' worth of links at the end of a session are marked without being reviewed;
+  unmark them individually if that matters.
 
 **Keyboard shortcuts**
-- F9 - mark current site as visited / toggle resume-submitted badge
+- F9 - mark current site as visited / toggle resume-submitted badge. On tabs opened from a queue
+  with `data-visit-mark="auto"`, F9 acts on the link's key rather than the tab's own host, so it
+  toggles the "R" mark for the employer even when the tab shows an applicant tracking system.
 - F8 - copy a contact record for the current site to clipboard
 
 ## Installation
@@ -73,6 +79,9 @@ The extension has a single background script that handles all logic and state:
 - **Link collection** returns `{url, key, mark}` entries rather than bare URLs. `key` comes from
   `data-visit-key`, defaulting to the URL's normalized host; `mark` comes from `data-visit-mark`.
   Both are read only from pages that opt in via `data-visit-open`.
+- **Queued tab keys** are stored in `browser.storage.session` as a tab-id-to-key map, so the
+  toolbar can show which site a tab was logged against when that differs from the tab's own host.
+  Entries are dropped when the tab closes.
 
 ## Development
 

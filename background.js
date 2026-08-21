@@ -4,18 +4,36 @@ function onError(error) {
   console.log(error);
 }
 
+const openedTabKeysId = "openedTabKeys";
+
 /* Makes the browserAction icon reflect the tab site logged state. */
-function refreshIcon(tab) {
+async function refreshIcon(tab) {
   const url = new URL(tab.url);
   const h = normalizeHostName(url.hostname);
+  const action = browser.browserAction;
+
+  const stored = await browser.storage.session.get(openedTabKeysId);
+  const openedKey = (stored[openedTabKeysId] || {})[tab.id];
+  if (openedKey && openedKey !== h) {
+    const site = await browser.storage.local.get({[openedKey]: {}});
+    const r = site[openedKey].r;
+    action.setIcon({path: "icons/logged.svg", tabId: tab.id});
+    action.setTitle({
+      title: (r ? "Resume submitted to " : "Logged ") + openedKey + " (opened from the queue)",
+      tabId: tab.id
+    });
+    action.setBadgeBackgroundColor({color: r ? "#FFF600" : "#4CAF50", tabId: tab.id});
+    action.setBadgeText({text: r ? "R" : "\u2713", tabId: tab.id});
+    return;
+  }
+
   if (isAtsHost(h)) {
-    const action = browser.browserAction;
     action.setIcon({path: "icons/not-logged.svg", tabId: tab.id});
     action.setTitle({
       title: "Applicant tracking system - log the employer's own site instead",
       tabId: tab.id
     });
-    action.setBadgeBackgroundColor({color: "#888888"});
+    action.setBadgeBackgroundColor({color: "#BDBDBD", tabId: tab.id});
     action.setBadgeText({text: "ATS", tabId: tab.id});
     return;
   }
@@ -39,8 +57,8 @@ function refreshIcon(tab) {
           tabId: tab.id
         });
 
-        action.setBadgeBackgroundColor({color: "#FFF600"});
-        action.setBadgeText({text: site[h].r ? "R" : ""});
+        action.setBadgeBackgroundColor({color: "#FFF600", tabId: tab.id});
+        action.setBadgeText({text: site[h].r ? "R" : "", tabId: tab.id});
       })
       .catch(onError);
 }
@@ -48,7 +66,7 @@ function refreshIcon(tab) {
 /* Removes the active tab's host from the visit log.
  *
  * F9 cycles unlogged -> logged -> logged+R and never back, so without this a
- * mistaken mark is a permanent short of hand-editing an export. This is also how
+ * mistaken mark is permanent, short of hand-editing an export. This is also how
  * an ATS host logged before the guard existed gets cleaned out, so it applies
  * to hosts that logVisit now refuses to mark.
  */
@@ -77,13 +95,25 @@ function unmarkSite(tab) {
 }
 
 /* The register visit browser action was triggered. */
-function logVisit(tab) {
+async function logVisit(tab) {
   const url = new URL(tab.url);
-  const h = normalizeHostName(url.hostname);
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    console.log("Skipping site with protocol " + url.protocol);
+    return refreshIcon(tab);
+  }
+
+  // A tab opened from the queue may be logged against a different site than the
+  // one it displays - an ATS board, or a separate careers domain. Act on the
+  // key it was opened for, so F9 toggles R for the employer rather than being
+  // refused for the vendor.
+  const stored = await browser.storage.session.get(openedTabKeysId);
+  const openedKey = (stored[openedTabKeysId] || {})[tab.id];
+  const h = openedKey || normalizeHostName(url.hostname);
+
   if (isAtsHost(h)) {
     console.log("Refusing to log ATS host " + h);
-    refreshIcon(tab);
-    return;
+    return refreshIcon(tab);
   }
 
   function markLogged(site) {
@@ -99,29 +129,33 @@ function logVisit(tab) {
     return site;
   }
 
-  if (url.protocol === "http:" || url.protocol == "https:") {
-    browser.storage.local.get({[h]: {}})
+  return browser.storage.local.get({[h]: {}})
       .then((site) => markLogged(site))
       .then((site) => browser.storage.local.set(site))
       .then(() => refreshIcon(tab))
       .catch(onError);
-  } else {
-    console.log("Skipping site with protocol " + url.protocol);
-    refreshIcon(tab);
-  }
 }
 
+/* Records a visit for a host that is not necessarily the active tab's host.
+ *
+ * Used by the tab queue when a link is marked data-visit-mark="auto", so a
+ * career page on an applicant tracking system is recorded against the employer's own site.
+ */
 function logVisitForHost(host) {
-
-  function markLogged(site) {
-    site[host].date = new Date().toISOString().substring(0, 10);
-    return site;
+  if (!host || isAtsHost(host)) {
+    console.log("Refusing to auto-log host " + host);
+    return Promise.resolve();
   }
 
-  browser.storage.local.get({[host]: {}})
-    .then((site) => markLogged(site))
-    .then((site) => browser.storage.local.set(site))
-    .catch(onError);
+  return browser.storage.local.get({[host]: {}})
+      .then((site) => {
+        if (site[host].date) {
+          return;  // already logged; keep the original date
+        }
+        site[host].date = new Date().toISOString().substring(0, 10);
+        return browser.storage.local.set(site);
+      })
+      .catch(onError);
 }
 
 browser.commands.onCommand.addListener((command, tab) => {
@@ -394,14 +428,42 @@ async function maybeKeepOpeningUrls() {
     if (site[entry.key].date) {
       continue;
     }
-    await browser.tabs.create({
+    const newTab = await browser.tabs.create({
       url: entry.url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
+    if (entry.mark === "auto") {
+      await logVisitForHost(entry.key);
+      await rememberOpenedTabKey(newTab.id, entry.key);
+    }
     tabCount++;
   }
 
   return browser.storage.session.set({openUrlsProgress: progress});
 }
 
-// try opening new tabs when an existing is closed
-browser.tabs.onRemoved.addListener(maybeKeepOpeningUrls);
+/* Remembers which visit key a queued tab was opened for.
+ *
+ * Without this, opening an ATS page marks the employer's site with no visible sign of it:
+ * the toolbar would show the ATS badge and nothing else.
+ */
+async function rememberOpenedTabKey(tabId, key) {
+  const stored = await browser.storage.session.get(openedTabKeysId);
+  const keys = stored[openedTabKeysId] || {};
+  keys[tabId] = key;
+  return browser.storage.session.set({[openedTabKeysId]: keys});
+}
 
+async function forgetOpenedTabKey(tabId) {
+  const stored = await browser.storage.session.get(openedTabKeysId);
+  const keys = stored[openedTabKeysId] || {};
+  if (keys[tabId] === undefined) {
+    return;
+  }
+  delete keys[tabId];
+  return browser.storage.session.set({[openedTabKeysId]: keys});
+}
+
+// try opening new tabs when an existing is closed
+browser.tabs.onRemoved.addListener((tabId) => {
+  forgetOpenedTabKey(tabId);
+  maybeKeepOpeningUrls();
+});
