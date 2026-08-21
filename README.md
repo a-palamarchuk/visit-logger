@@ -24,6 +24,13 @@ A Firefox extension for managing website visits during a job search workflow.
 - When you close a tab, the extension automatically opens the next unvisited link in the background
 - Skips links already marked as visited
 - After restart, already-visited sites are skipped automatically when starting a new queue
+- Generated link lists can control the queue through `data-` attributes. When a page contains any
+  `a[data-visit-open]` anchor, only those links are queued, so helper links on the same row
+  (company website, search links) are ignored. On pages without them, every link is queued as
+  before.
+- `data-visit-key` overrides which host a link is tracked against. A careers page on an applicant
+  tracking system or a separate careers domain can therefore be recorded against the employer's
+  own site.
 
 **Keyboard shortcuts**
 - F9 - mark current site as visited / toggle resume-submitted badge
@@ -63,6 +70,9 @@ The extension has a single background script that handles all logic and state:
   whether the open tab count has fallen below the threshold and opens the next unvisited URL.
 - **Import UI** opens as a browser popup window (`popup.html`); the background script
   handles export directly via `browser.downloads`.
+- **Link collection** returns `{url, key, mark}` entries rather than bare URLs. `key` comes from
+  `data-visit-key`, defaulting to the URL's normalized host; `mark` comes from `data-visit-mark`.
+  Both are read only from pages that opt in via `data-visit-open`.
 
 ## Development
 

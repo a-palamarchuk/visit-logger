@@ -184,6 +184,25 @@ function normalizeHostName(hostname) {
   return hostname;
 }
 
+/* Fills in defaults for a link entry collected from a page.
+ *
+ * The key is what visit state is recorded against. It defaults to the URL's
+ * host, which is the right answer for ordinary pages, but a generated list can
+ * override it so a link on an ATS or a separate careers domain is tracked
+ * against the employer's own site instead.
+ */
+function normalizeEntry(entry) {
+  let key = entry.key;
+  if (!key) {
+    try {
+      key = normalizeHostName(new URL(entry.url).hostname);
+    } catch (e) {
+      key = "";
+    }
+  }
+  return {url: entry.url, key: normalizeHostName(key), mark: entry.mark};
+}
+
 function playSound() {
   new Audio("copied.ogg").play();
 }
@@ -268,24 +287,31 @@ browser.menus.onClicked.addListener((info, tab) => {
   case openLinksId:
     browser.tabs.executeScript({
       code:
-      `hrefs = [];
-       links = document.getElementsByTagName("a");
-       for (let i = 0; i < links.length; i++) {
-         hrefs.push(links[i].href);
+      `(() => {
+         const marked = document.querySelectorAll("a[data-visit-open]");
+         const anchors = marked.length ? marked : document.getElementsByTagName("a");
+         const entries = [];
+         for (const a of anchors) {
+           entries.push({
+             url: a.href,
+             key: a.dataset.visitKey || "",
+             mark: a.dataset.visitMark || ""
+           });
        }
-       hrefs;
+       return entries;
+      })();
       `,
     })
-      .then((r) => {
-        const urls = [];
-        for (let url of r[0]) {
-          if (!url.startsWith("https://www.google.com")) {
-            urls.push(url);
+        .then((r) => {
+          const entries = [];
+          for (const entry of r[0]) {
+            if (!entry.url.startsWith("https://www.google.com")) {
+              entries.push(normalizeEntry(entry));
+            }
           }
-        }
-        return startOpeningUrls(tab, urls);
-      })
-      .catch(onError);
+          return startOpeningUrls(tab, entries);
+        })
+        .catch(onError);
     break;
   case stopOpeningLinksId:
     return browser.storage.session.remove("openUrlsProgress");
@@ -327,15 +353,15 @@ function importLoggedSites() {
   }
 }
 
-function startOpeningUrls(tab, urls) {
+function startOpeningUrls(tab, entries) {
   const openUrlsProgress = {
     windowId: tab.windowId,
     tabIndex: tab.index,
-    urls: urls,
+    entries: entries,
   }
 
   return browser.storage.session.set({openUrlsProgress: openUrlsProgress})
-    .then(maybeKeepOpeningUrls);
+      .then(maybeKeepOpeningUrls);
 }
 
 async function maybeKeepOpeningUrls() {
@@ -346,7 +372,7 @@ async function maybeKeepOpeningUrls() {
 
   const progress = key.openUrlsProgress;
   const tabs = await browser.tabs.query({windowId: progress.windowId});
-  if (!progress.urls.length || !tabs.length) {
+  if (!progress.entries.length || !tabs.length) {
     console.log("Stopped opening URLs");
     return browser.storage.session.remove("openUrlsProgress");
   }
@@ -358,16 +384,18 @@ async function maybeKeepOpeningUrls() {
     return;
   }
 
-  while (progress.urls.length && tabCount < targetTabCount) {
-    const url = progress.urls.shift();
-    const h = normalizeHostName(new URL(url).hostname);
-    const site = await browser.storage.local.get({[h]: {}});
-    if (site[h].date) {
+  while (progress.entries.length && tabCount < targetTabCount) {
+    const entry = progress.entries.shift();
+    if (!entry.key) {
+      console.log("Skipping entry with no key: " + entry.url);
+      continue;
+    }
+    const site = await browser.storage.local.get({[entry.key]: {}});
+    if (site[entry.key].date) {
       continue;
     }
     await browser.tabs.create({
-      url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
-    // logVisitForHost(h);
+      url: entry.url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
     tabCount++;
   }
 
