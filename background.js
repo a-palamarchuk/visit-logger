@@ -9,28 +9,29 @@ function refreshIcon(tab) {
   const url = new URL(tab.url);
   const h = normalizeHostName(url.hostname);
   browser.storage.local.get({[h]: {}})
-    .then((site) => {
-      // Don't show that "google.com" is logged even when it is.
-      // It would be annoying to see the icon every time one goes to Google.
-      if (h === "google.com") {
-        site = {};
-      }
+      .then((site) => {
+        // Don't show that "google.com" is logged even when it is.
+        // It would be annoying to see the icon every time one goes to Google.
+        if (h === "google.com") {
+          site = {[h]: {}};
+        }
 
-      const logged = site[h].date;
-      const action = browser.browserAction;
+        const logged = site[h].date;
+        const action = browser.browserAction;
 
-      action.setIcon({
-        path: logged ? "icons/logged.svg" : "icons/not-logged.svg",
-        tabId: tab.id
-      });
-      action.setTitle({
-        title: logged ? "Toggle R mark on the site logged as visited (F9)" : "Log site visit (F9)",
-        tabId: tab.id
-      });
+        action.setIcon({
+          path: logged ? "icons/logged.svg" : "icons/not-logged.svg",
+          tabId: tab.id
+        });
+        action.setTitle({
+          title: logged ? "Toggle R mark on the site logged as visited (F9)" : "Log site visit (F9)",
+          tabId: tab.id
+        });
 
-      action.setBadgeBackgroundColor({color: "#FFF600"});
-      action.setBadgeText({text: site[h].r ? "R" : ""});
-    });
+        action.setBadgeBackgroundColor({color: "#FFF600"});
+        action.setBadgeText({text: site[h].r ? "R" : ""});
+      })
+      .catch(onError);
 }
 
 /* The register visit browser action was triggered. */
@@ -105,16 +106,16 @@ browser.browserAction.onClicked.addListener(logVisit);
 
 
 /* Refreshes the extension UI for the currently active tab. */
-function updateActiveTab(tabs) {
+function updateActiveTab() {
   browser.tabs.query({active: true, currentWindow: true})
-    .then((tabs) => {
-      if (tabs[0]) {
-        const tab = tabs[0];
-        refreshIcon(tab);
-      } else {
-        console.log("WARN: no active tab was found");
-      }
-    });
+      .then((tabs) => {
+        if (tabs[0]) {
+          refreshIcon(tabs[0]);
+        } else {
+          console.log("WARN: no active tab was found");
+        }
+      })
+      .catch(onError);
 }
 
 // listen to tab URL changes
@@ -270,7 +271,7 @@ async function maybeKeepOpeningUrls() {
     }
     await browser.tabs.create({
       url: url, windowId: progress.windowId, index: progress.tabIndex + 1, active: false});
-    logVisitForHost(h);
+    // logVisitForHost(h);
     tabCount++;
   }
 
