@@ -45,6 +45,37 @@ function refreshIcon(tab) {
       .catch(onError);
 }
 
+/* Removes the active tab's host from the visit log.
+ *
+ * F9 cycles unlogged -> logged -> logged+R and never back, so without this a
+ * mistaken mark is a permanent short of hand-editing an export. This is also how
+ * an ATS host logged before the guard existed gets cleaned out, so it applies
+ * to hosts that logVisit now refuses to mark.
+ */
+function unmarkSite(tab) {
+  const url = new URL(tab.url);
+  const h = normalizeHostName(url.hostname);
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    console.log("Skipping site with protocol " + url.protocol);
+    return;
+  }
+
+  browser.storage.local.get({[h]: {}})
+      .then((site) => {
+        if (!site[h].date) {
+          console.log("Not logged, nothing to unmark: " + h);
+          return;
+        }
+        return browser.storage.local.remove(h).then(() => {
+          console.log("Unmarked " + h);
+          playSound();
+        });
+      })
+      .then(() => refreshIcon(tab))
+      .catch(onError);
+}
+
 /* The register visit browser action was triggered. */
 function logVisit(tab) {
   const url = new URL(tab.url);
@@ -188,6 +219,7 @@ updateActiveTab();
 
 const exportId = "export-logged-sites";
 const importId = "import-logged-sites";
+const unmarkId = "unmark-logged-site";
 const openLinksId = "open-links";
 const stopOpeningLinksId = "stop-opening-links";
 
@@ -200,6 +232,12 @@ browser.menus.create({
 browser.menus.create({
   id: importId,
   title: "Import Logged Sites",
+  contexts: ["all"]
+});
+
+browser.menus.create({
+  id: unmarkId,
+  title: "Unmark Site as Visited",
   contexts: ["all"]
 });
 
@@ -223,6 +261,9 @@ browser.menus.onClicked.addListener((info, tab) => {
     break;
   case importId:
     importLoggedSites();
+    break;
+  case unmarkId:
+    unmarkSite(tab);
     break;
   case openLinksId:
     browser.tabs.executeScript({

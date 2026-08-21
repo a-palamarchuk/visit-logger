@@ -14,6 +14,9 @@ A Firefox extension for managing website visits during a job search workflow.
   recognized and cannot be marked visited: their hostnames are shared by thousands of employers,
   so logging one would silently skip every company using that ATS. The toolbar badge shows "ATS"
   on those pages.
+- Unmark a site through the context menu ("Unmark Site as Visited") to remove its visit log
+  entry, including the "R" mark. F9 alone cannot undo a mark, so this is the way to correct a
+  mistaken one - or to clear an ATS hostname logged before the guard existed.
 
 **Automated tab queue**
 - On any page containing hyperlinks, start continuous tab opening with a single menu action
