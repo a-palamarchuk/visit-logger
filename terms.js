@@ -31,7 +31,7 @@ var TERM_GROUPS = [
     background: "#b7ebc6",
     color: "#0b3d1e",
     terms: [
-      "careers", "career", "explore all jobs",
+      "careers", "career", "current opportunities", "explore all jobs",
       "jobs", "openings", "open positions", "open roles",
       "join us", "join our team", "join the team", "work with us", "work for us",
       "we're hiring", "we are hiring", "now hiring"
