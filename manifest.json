@@ -1,10 +1,11 @@
 {
   "manifest_version": 2,
   "name": "Visit Logger",
-  "version": "1",
+  "version": "1.1",
   "browser_specific_settings": {
     "gecko": {
-      "id": "visit-logger@example.com"
+      "id": "visit-logger@example.com",
+      "strict_min_version": "140.0"
     }
   },
   "description": "Manages website visits during a job search workflow.",
@@ -18,6 +19,7 @@
   },
 
   "permissions": [
+    "<all_urls>",
     "activeTab",
     "clipboardWrite",
     "downloads",
@@ -44,6 +46,15 @@
   },
 
   "background": {
-    "scripts": ["background.js"]
-  }
+    "scripts": ["ats-hosts.js", "terms.js", "matcher.js", "background.js"]
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["ats-hosts.js", "terms.js", "matcher.js", "highlighter.js"],
+      "all_frames": true,
+      "run_at": "document_idle"
+    }
+  ]
 }
