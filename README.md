@@ -48,8 +48,9 @@ A Firefox extension for managing website visits during a job search workflow.
   restarts.
 - Careers links are found by their text, their URL, or a destination on an applicant tracking
   system, including links inside closed menus and links added by script after the page loads.
-  The panel lists them; click one to follow it. On a page that is already a careers page, only
-  links out to an applicant tracking system are listed, and on a job board none are ("here").
+  The panel lists them; click one to follow it, or Ctrl+click or middle-click it to open it in
+  a new tab. On a page that is already a careers page, only links out to an applicant tracking
+  system are listed, and on a job board none are ("here").
 - Matches inside iframes, such as an embedded job board, are included in the counts.
 - The toolbar tooltip also shows the counts.
 - Highlights use the CSS Custom Highlight API, so the page's own markup is not changed.

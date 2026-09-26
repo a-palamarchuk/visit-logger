@@ -439,15 +439,18 @@
       border-radius: 6px;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
     }
-    button {
+    button,
+    a {
       font: inherit;
       color: inherit;
       background: none;
       border: 0;
       padding: 0;
       cursor: pointer;
+      text-decoration: none;
     }
-    button:focus-visible {
+    button:focus-visible,
+    a:focus-visible {
       outline: 2px solid #0b57d0;
       outline-offset: 1px;
     }
@@ -502,7 +505,9 @@
     .links:empty {
       display: none;
     }
-    .links button {
+    .links button,
+    .links a {
+      box-sizing: border-box;
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -511,7 +516,8 @@
       text-align: left;
       border-left: 3px solid var(--careers);
     }
-    .links button:hover {
+    .links button:hover,
+    .links a:hover {
       background: #f1f3f5;
     }
     .dest,
@@ -619,11 +625,21 @@
       return chip;
     }
 
+    /* Entries with a URL are real links, so Ctrl+click, middle-click and the
+     * context menu open them in a new tab. A plain click still follows the
+     * page's own element, which keeps its target and any script routing. */
     function renderLink(link) {
-      const button = element("button");
+      const button = element(link.url ? "a" : "button");
+      if (link.url) {
+        button.href = link.url;
+      }
       button.append(element("span", "link-label", link.label), element("span", "dest", link.dest));
       button.title = (link.url || "Button without a link address") + "\nFound by: " + link.reasons.join(", ");
-      button.addEventListener("click", () => {
+      button.addEventListener("click", (event) => {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+          return;  // the browser opens the link in a new tab or window
+        }
+        event.preventDefault();
         if (link.frameId === 0) {
           openLink(link.index);  // this frame; keeps the click's user activation for new tabs
         } else {
