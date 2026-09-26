@@ -513,8 +513,8 @@
       gap: 12px;
       align-items: baseline;
       width: 100%;
-      padding: 8px 10px;
-      font-size: 20px;
+      padding: 5px 8px;
+      font-size: 14px;
       text-align: left;
       border-left: 3px solid var(--careers);
     }
@@ -530,7 +530,7 @@
       color: #5b6470;
     }
     .dest {
-      font-size: 14px;
+      font-size: 12px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
