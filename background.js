@@ -193,6 +193,8 @@ browser.commands.onCommand.addListener((command, tab) => {
   </site>`);
     console.log("Copied contact record to the clipboard for " + h);
     playSound();
+  } else if (command === "open-first-careers-link") {
+    openFirstCareersLink(tab.id);
   }
 });
 
@@ -538,6 +540,26 @@ function pushHighlightState(tabId, force) {
   pushedHighlightStates.set(tabId, json);
   browser.tabs.sendMessage(tabId, {type: "vl-state", state: state}, {frameId: 0}).catch(() => {});
   browser.tabs.get(tabId).then(refreshIcon).catch(onError);
+}
+
+/* Follows the first link the panel lists, in the same tab. A link with a URL is
+ * loaded directly: clicking the page's element from a keyboard command has no
+ * user activation, so a link that opens a new window could be blocked. A
+ * script button has no URL, so its frame clicks it. */
+function openFirstCareersLink(tabId) {
+  if (!highlightReports.has(tabId)) {
+    return;
+  }
+  const link = highlightState(tabId).links[0];
+  if (!link) {
+    return;
+  }
+  if (link.url) {
+    browser.tabs.update(tabId, {url: link.url}).catch(onError);
+  } else {
+    browser.tabs.sendMessage(tabId, {type: "vl-open-local", index: link.index}, {frameId: link.frameId})
+        .catch(onError);
+  }
 }
 
 /* One line of counts for the toolbar tooltip, or "" if the tab isn't highlighted. */

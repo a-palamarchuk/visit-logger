@@ -42,6 +42,10 @@
     "_execute_browser_action": {
       "suggested_key": { "default": "F9" },
       "description": "Marks the site as visited and after that toggles the R badge for the toolbar icon"
+    },
+    "open-first-careers-link": {
+      "suggested_key": { "default": "Ctrl+Alt+J" },
+      "description": "Follows the first careers link listed in the highlight panel"
     }
   },
 
