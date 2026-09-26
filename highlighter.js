@@ -511,10 +511,15 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      align-items: baseline;
       width: 100%;
-      padding: 2px 6px;
+      padding: 8px 10px;
+      font-size: 20px;
       text-align: left;
       border-left: 3px solid var(--careers);
+    }
+    .links li + li {
+      margin-top: 2px;
     }
     .links button:hover,
     .links a:hover {
@@ -525,6 +530,7 @@
       color: #5b6470;
     }
     .dest {
+      font-size: 14px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
