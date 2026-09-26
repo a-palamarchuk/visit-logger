@@ -42,9 +42,9 @@ A Firefox extension for managing website visits during a job search workflow.
   Every other tab is left alone.
 - Term groups are highlighted in their own colors: careers links, clearance, pay amounts, pay
   words, and work mode. Edit `terms.js` to change the terms, colors, or groups.
-- A panel in the corner of the page shows a count per group. Click a group to scroll to its next
-  match. Matches in hidden content, such as a collapsed section, are counted but skipped. The
-  panel can be collapsed or moved to the other corner; the choice lasts until the browser
+- A panel in the top corner of the page shows a count per group. Click a group to scroll to its
+  next match. Matches in hidden content, such as a collapsed section, are counted but skipped. The
+  panel can be collapsed or moved to the other top corner; the choice lasts until the browser
   restarts.
 - Careers links are found by their text, their URL, or a destination on an applicant tracking
   system, including links inside closed menus and links added by script after the page loads.

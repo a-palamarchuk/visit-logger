@@ -418,7 +418,7 @@
     :host {
       all: initial !important;
       position: fixed !important;
-      bottom: 12px !important;
+      top: 12px !important;
       right: 12px !important;
       z-index: 2147483647 !important;
     }
