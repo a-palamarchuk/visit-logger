@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Visit Logger sample link list</title>
+<style>
+    body { font-family: system-ui, sans-serif; margin: 1.5em; max-width: 60em; line-height: 1.45; }
+    h1 { font-size: 1.3em; }
+    h2 { font-size: 1.1em; margin-top: 1.6em; }
+    table { border-collapse: collapse; font-size: 0.9em; }
+    th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; vertical-align: top; }
+    th { background: #f0f0f0; }
+    td.skip { color: #8a6d00; }
+    pre { background: #f6f8fa; padding: 8px 10px; overflow-x: auto; font-size: 0.85em; }
+    code { background: #f6f8fa; padding: 0 3px; }
+    ol li, ul li { margin-bottom: 0.3em; }
+</style>
+</head>
+<body>
+<h1>Visit Logger: sample link list</h1>
+
+<p>A generated list like this one is what the extension is built for: open 20 employer and job
+pages a few at a time, remember which ones you've reviewed, and point out careers links, pay,
+clearance, and work mode on each page. See <code>README.md</code> for the details.</p>
+
+<h2>Try it</h2>
+<ol>
+  <li>Open this file in a <b>new window</b>. The queue keeps at most 5 tabs open in the window,
+    counting this one.</li>
+  <li>Right-click the page and choose <b>Start to continuously open not visited links</b>.
+    Four tabs open in the background.</li>
+  <li>Look through a tab and close it. The next link opens in its place, until all 20 have
+    opened. <b>Stop opening links</b> in the same menu stops the queue.</li>
+  <li>On a company home page, the panel in the top corner lists the careers links it found. Click
+    one, or press <b>Ctrl+Alt+J</b> to follow the first. On a job posting, click a colored
+    count in the panel to scroll to its next match.</li>
+  <li>Press <b>F9</b> in a tab to put an "R" (resume sent) on its entry.</li>
+  <li>Start the queue on this page again: nothing opens, because every link was marked
+    visited when its tab opened. To replay a link, right-click in its tab and choose
+    <b>Unmark Site as Visited</b>.</li>
+</ol>
+
+<p>The visit log of a temporary add-on is discarded when you remove it or restart Firefox. To
+keep it, set <code>extensions.webextensions.keepStorageOnUninstall</code> and
+<code>extensions.webextensions.keepUuidOnUninstall</code> to <code>true</code> in
+<code>about:config</code>.</p>
+
+<h2>How the links are marked up</h2>
+<p>Only anchors with <code>data-visit-open</code> are queued. Every other link on the page,
+such as "careers" and "search" below, is ignored.</p>
+<pre>&lt;a href="https://redwirespace.com"
+   data-visit-open                   <i>queue this link</i>
+   data-visit-key="redwirespace.com" <i>record the visit under this key</i>
+   data-visit-mark="auto"&gt;           <i>mark it visited as soon as its tab opens</i>
+  Redwire&lt;/a&gt;</pre>
+<p>Without <code>data-visit-key</code>, the visit is recorded under the link's own host.
+Without <code>data-visit-mark="auto"</code>, it is recorded only when you press F9, so an
+unreviewed link opens again next time. The queue never opens a link whose key is already in
+the visit log.</p>
+
+<h2>Companies: 8 links open</h2>
+<p>One link per row opens: the employer's home page, which the row is tracked by. The
+"careers" and "search" links have no <code>data-visit-open</code>, so they stay closed; the
+highlight panel on the home page points you to its careers page instead.</p>
+<table>
+<thead><tr><th>Company</th><th>Careers</th><th>Find</th></tr></thead>
+<tbody>
+<tr><td><a href="https://redwirespace.com" data-visit-open data-visit-key="redwirespace.com" data-visit-mark="auto">Redwire</a></td><td><a href="https://recruitingbypaycor.com/career/CareerHome.action?clientId=8a7883d0766d99fc0176b0cd67871d57">careers</a></td><td><a href="https://duckduckgo.com/?q=Redwire+careers">search</a></td></tr>
+<tr><td><a href="https://leolabs.space" data-visit-open data-visit-key="leolabs.space" data-visit-mark="auto">LeoLabs</a></td><td><a href="https://job-boards.greenhouse.io/leolabsinc/">careers</a></td><td><a href="https://duckduckgo.com/?q=LeoLabs+careers">search</a></td></tr>
+<tr><td><a href="https://netapp.com" data-visit-open data-visit-key="netapp.com" data-visit-mark="auto">NetApp</a></td><td><a href="https://netapp.eightfold.ai/">careers</a></td><td><a href="https://duckduckgo.com/?q=NetApp+careers">search</a></td></tr>
+<tr><td><a href="https://ironmountain.com" data-visit-open data-visit-key="ironmountain.com" data-visit-mark="auto">Iron Mountain</a></td><td><a href="https://ironmountain.wd5.myworkdayjobs.com/iron-mountain-jobs/">careers</a></td><td><a href="https://duckduckgo.com/?q=Iron+Mountain+careers">search</a></td></tr>
+<tr><td><a href="https://mrcy.com" data-visit-open data-visit-key="mrcy.com" data-visit-mark="auto">Mercury Systems</a></td><td><a href="https://myjobs.adp.com/mercurysystemscareers/">careers</a></td><td><a href="https://duckduckgo.com/?q=Mercury+Systems+careers">search</a></td></tr>
+<tr><td><a href="https://peraton.com" data-visit-open data-visit-key="peraton.com" data-visit-mark="auto">Peraton</a></td><td><a href="https://peraton.jibeapply.com/">careers</a></td><td><a href="https://duckduckgo.com/?q=Peraton+careers">search</a></td></tr>
+<tr><td><a href="https://l3harris.com" data-visit-open data-visit-key="l3harris.com" data-visit-mark="auto">L3Harris Technologies</a></td><td><a href="https://career-hcm20.ns2cloud.com/">careers</a></td><td><a href="https://duckduckgo.com/?q=L3Harris+Technologies+careers">search</a></td></tr>
+<tr><td><a href="https://bti360.com" data-visit-open data-visit-key="bti360.com" data-visit-mark="auto">BTI360</a></td><td><a href="https://job-boards.greenhouse.io/bti36021/">careers</a></td><td><a href="https://duckduckgo.com/?q=BTI360+careers">search</a></td></tr>
+</tbody>
+</table>
+
+<h2>Job postings: 12 links open</h2>
+<p>Both links in a row are queued. A posting's key is a job ID rather than a host, so each
+posting is tracked on its own even though many share a job board host. Clarity Innovations and
+Appian each appear twice: their second company link is skipped, because the first one already
+marked that key, but both postings open.</p>
+<table>
+<thead><tr><th>Title</th><th>Company</th><th>Posting</th><th></th></tr></thead>
+<tbody>
+<tr><td>Principal Algorithm Engineer (EO/IR Image Analysis)</td><td><a href="https://rocketlabcorp.com" data-visit-open data-visit-key="rocketlabcorp.com" data-visit-mark="auto">Rocket Lab</a></td><td><a href="https://job-boards.greenhouse.io/rocketlab/jobs/7997781003" data-visit-open data-visit-key="job:grnhse___rocketlab___7997781003" data-visit-mark="auto">apply</a></td><td></td></tr>
+<tr><td>Sr. Principal Platform Engineer</td><td><a href="https://clarityinnovates.com" data-visit-open data-visit-key="clarityinnovates.com" data-visit-mark="auto">Clarity Innovations</a></td><td><a href="https://job-boards.greenhouse.io/clarityinnovates/jobs/5235606007" data-visit-open data-visit-key="job:grnhse___clarityinnovates___5235606007" data-visit-mark="auto">apply</a></td><td></td></tr>
+<tr><td>Sr. Principal Platform Engineer</td><td><a href="https://clarityinnovates.com" data-visit-open data-visit-key="clarityinnovates.com" data-visit-mark="auto">Clarity Innovations</a></td><td><a href="https://job-boards.greenhouse.io/clarityinnovates/jobs/5235627007" data-visit-open data-visit-key="job:grnhse___clarityinnovates___5235627007" data-visit-mark="auto">apply</a></td><td class="skip">company link skipped</td></tr>
+<tr><td>Senior Software Engineer</td><td><a href="https://yext.com" data-visit-open data-visit-key="yext.com" data-visit-mark="auto">Yext</a></td><td><a href="https://job-boards.greenhouse.io/yext/jobs/8192381" data-visit-open data-visit-key="job:grnhse___yext___8192381" data-visit-mark="auto">apply</a></td><td></td></tr>
+<tr><td>Applied AI Engineer, Government</td><td><a href="https://openai.com" data-visit-open data-visit-key="openai.com" data-visit-mark="auto">OpenAI</a></td><td><a href="https://jobs.ashbyhq.com/openai/485cda77-5d8f-4aaa-bca5-916b011477e6" data-visit-open data-visit-key="job:ashby___openai___485cda77-5d8f-4aaa-bca5-916b011477e6" data-visit-mark="auto">apply</a></td><td></td></tr>
+<tr><td>Lead AI Developer Tooling Engineer</td><td><a href="https://appian.com" data-visit-open data-visit-key="appian.com" data-visit-mark="auto">Appian</a></td><td><a href="https://job-boards.greenhouse.io/appian/jobs/8193833" data-visit-open data-visit-key="job:grnhse___appian___8193833" data-visit-mark="auto">apply</a></td><td></td></tr>
+<tr><td>Lead AI Security Engineer</td><td><a href="https://appian.com" data-visit-open data-visit-key="appian.com" data-visit-mark="auto">Appian</a></td><td><a href="https://job-boards.greenhouse.io/appian/jobs/8201097" data-visit-open data-visit-key="job:grnhse___appian___8201097" data-visit-mark="auto">apply</a></td><td class="skip">company link skipped</td></tr>
+</tbody>
+</table>
+<p>Job postings close over time; a closed one still opens and is marked, it just shows the job
+board's "no longer available" page.</p>
+</body>
+</html>

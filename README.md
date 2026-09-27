@@ -74,6 +74,9 @@ for development and personal use:
 3. Click **This Firefox** → **Load Temporary Add-on**
 4. Select any file in the repository directory
 
+To try it out, open `sample-links.html` from the repository in Firefox and follow its steps. It
+queues 20 employer and job pages and explains the link markup that controls the queue.
+
 **To persist data between browser restarts when using temporary installation:**
 Go to `about:config` and set both `extensions.webextensions.keepStorageOnUninstall` and
 `extensions.webextensions.keepUuidOnUninstall` to `true`.
