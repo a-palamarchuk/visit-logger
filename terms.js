@@ -84,5 +84,43 @@ var TERM_GROUPS = [
     background: "#bcdcff",
     color: "#0a2a52",
     terms: ["remote", "hybrid", "on-site", "in office"]
+  },
+  {
+    id: "role",
+    label: "Target roles",
+    kind: "text",
+    background: "#dccbff",
+    color: "#2e1065",
+    terms: [
+      // Generic software titles
+      "software engineer", "software developer", "software development engineer",
+      "SDE", "SWE", "member of technical staff",
+      // Backend and distributed systems ("back-end" also finds "backend", "back end")
+      "back-end engineer", "back-end developer", "back-end",
+      "distributed systems", "control plane",
+      "Java engineer", "Java developer",
+      // Platform and infrastructure (phrases only: bare "platform" is too noisy)
+      "platform engineer", "infrastructure engineer",
+      // AI and developer tooling
+      "AI engineer", "LLM engineer", "agent engineer",
+      "developer tools", "developer productivity", "developer experience", "devtools"
+    ]
+  },
+  {
+    id: "level",
+    label: "Seniority",
+    kind: "text",
+    background: "#a8e6df",
+    color: "#053b35",
+    terms: [
+      // Level word, highlighted only when an engineer/developer title follows
+      // within three words: "Senior Software Engineer", "Sr. Back-End Engineer",
+      // "Staff Engineer, Platform". Skips "senior leadership", "Senior Engineering Manager".
+      /\b(?:senior|sr|staff|principal|lead)\b\.?(?=[\s,\/-]+(?:[\w.+&\/-]+[\s,]+){0,3}(?:engineer|developer|SDE|SWE)\b)/i,
+      // Numbered levels: "Software Engineer III", "SDE III", "SDE-3". II is left out
+      // because it is mid-level at most large companies.
+      /\b(?:(?:engineer|developer)[\s,-]+(?:III|IV|V)|(?:SDE|SWE)[\s-]*(?:III|IV|V|[3-5]))\b/i,
+      "tech lead", "technical lead"
+    ]
   }
 ];
