@@ -32,7 +32,7 @@ var TERM_GROUPS = [
     color: "#0b3d1e",
     terms: [
       "careers", "career", "current opportunities", "explore all jobs",
-      "jobs", "openings", "open positions", "open roles",
+      "jobs", "openings", "open positions", "open roles", "job offers",
       "join us", "join our team", "join the team", "work with us", "work for us",
       "we're hiring", "we are hiring", "now hiring"
     ],
@@ -41,7 +41,7 @@ var TERM_GROUPS = [
       /^(?:careers?|jobs)\./i,
       // example.com/careers, example.com/en/jobs.html, example.com/join-us/
       // Bare "/join" is left out: it is usually a sign-up page.
-      /\/(?:careers?|jobs|openings|open-positions|open-roles|join-us|join-our-team|work-with-us|work-for-us)(?=[/._-]|$)/i
+      /\/(?:careers?|jobs|openings|current-openings|open-positions|open-roles|join-us|join-our-team|work-with-us|work-for-us|job-offers|job-openings)(?=[/._-]|$)/i
     ]
   },
   {
